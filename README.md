@@ -161,7 +161,7 @@ class _MyHomePageState extends State<MyHomePage> {
     try {
       final imageBytes = _imageBytes!;
       final detectionOutput = await _detectionModel!.predict(imageBytes);
-      debugPrint('Detecção recebida: $detectionOutput');
+      log('Detecção recebida: $detectionOutput');
       final classificationOutput = await _classificationModel!.predict(
         imageBytes,
       );
@@ -171,12 +171,12 @@ class _MyHomePageState extends State<MyHomePage> {
             '${(classificationOutput.confidence * 100).toStringAsFixed(1)}%';
         _classLabelClassification = classificationOutput.label;
       });
-      debugPrint('\n\nClassificação recebida: $classificationOutput');
+      log('\n\nClassificação recebida: $classificationOutput');
       try {
         final segmentationOutput = await _segmentationModel!.predict(
           imageBytes,
         );
-        debugPrint('\n\nSegmentação recebida: $segmentationOutput');
+        log('\n\nSegmentação recebida: $segmentationOutput');
         setState(() {
           _segmentedImageBytes = segmentationOutput.segmentedImage;
           _confidenceSegmentation =
@@ -188,7 +188,7 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       } catch (e) {
         // Caso a segmentação falhe, usa a imagem original como fallback
-        debugPrint('Segmentação falhou: $e');
+        log('Segmentação falhou: $e');
         setState(() {
           _segmentedImageBytes = imageBytes;
           _confidenceSegmentation = '—';
@@ -212,7 +212,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Erro: $e')));
-      debugPrint('Erro na execução: $e');
+      log('Erro na execução: $e');
     }
   }
 

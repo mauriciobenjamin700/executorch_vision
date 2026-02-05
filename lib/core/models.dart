@@ -87,12 +87,12 @@
 library;
 
 import 'dart:convert';
-import 'dart:typed_data';
-import 'dart:math' as math;
+import 'dart:developer';
 import 'dart:io';
+import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:executorch_flutter/executorch_flutter.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -107,13 +107,13 @@ Future<ExecuTorchModel> loadModel(String modelPath) async {
   // Avoid appending an extra .pte if modelPath already contains the extension
   final file = File('${tempDir.path}/$modelTempName');
   await file.writeAsBytes(byteData.buffer.asUint8List());
-  debugPrint('Loading model from: ${file.path}');
+  log('Loading model from: ${file.path}');
   try {
     final model = await ExecuTorchModel.load(file.path);
-    debugPrint('ExecuTorchModel.load returned: $model');
+    log('ExecuTorchModel.load returned: $model');
     return model;
   } catch (e) {
-    debugPrint('Erro ao carregar ExecuTorchModel: $e');
+    log('Erro ao carregar ExecuTorchModel: $e');
     rethrow;
   }
 }
@@ -121,7 +121,7 @@ Future<ExecuTorchModel> loadModel(String modelPath) async {
 Future<List<String>> loadLabels(String labelsPath) async {
   final labelsData = await rootBundle.loadString(labelsPath);
   final labels = const LineSplitter().convert(labelsData);
-  debugPrint('Rótulos carregados de $labelsPath');
+  log('Rótulos carregados de $labelsPath');
   return labels;
 }
 
@@ -153,14 +153,12 @@ class DetectionModel {
     // Executa a inferência
     final outputs = await model.forward([tensorData]);
 
-    debugPrint('Inferência concluída no modelo de detecção');
+    log('Inferência concluída no modelo de detecção');
     for (var output in outputs) {
-      debugPrint('Output shape: ${output.shape}');
-      debugPrint('Output type: ${output.dataType}');
-      debugPrint('Output data length: ${output.data.length}');
-      debugPrint(
-        'Output data (first 10 values): ${output.data.take(10).toList()}',
-      );
+      log('Output shape: ${output.shape}');
+      log('Output type: ${output.dataType}');
+      log('Output data length: ${output.data.length}');
+      log('Output data (first 10 values): ${output.data.take(10).toList()}');
     }
     if (outputs.isEmpty) return <DetectionResult>[];
 
@@ -176,11 +174,11 @@ class DetectionModel {
       out.data.offsetInBytes,
       out.data.lengthInBytes ~/ 4,
     );
-    debugPrint('Parsed float length: ${floatData.length}');
+    log('Parsed float length: ${floatData.length}');
     try {
-      debugPrint('First 10 floats: ${floatData.take(10).toList()}');
+      log('First 10 floats: ${floatData.take(10).toList()}');
     } catch (e) {
-      debugPrint('Could not print float sample: $e');
+      log('Could not print float sample: $e');
     }
 
     // Helpers
@@ -190,7 +188,7 @@ class DetectionModel {
     final expectedWithObj = labels.length + 5;
     final hasObjectness = channels == expectedWithObj;
     final classCount = hasObjectness ? (channels - 5) : (channels - 4);
-    debugPrint(
+    log(
       'channels=$channels numBoxes=$numBoxes expectedWithObj=$expectedWithObj hasObjectness=$hasObjectness classCount=$classCount',
     );
 
@@ -215,8 +213,9 @@ class DetectionModel {
         (j) => at(classOffset + j),
       );
       if (i < 3)
-        debugPrint(
-          'box $i raw x,y,w,h: $x,$y,$w,$h objectness:$objectness classScoresSample:${classScores.take(6).toList()}',
+        log(
+          'box $i raw x,y,w,h: $x,$y,$w,$h objectness:$objectness'
+          ' classScoresSample:${classScores.take(6).toList()}',
         );
       final classProbs = classScores.map((s) => sigmoid(s)).toList();
       double maxClassProb = classProbs.reduce(math.max);
